@@ -3,7 +3,7 @@ use biome_console::markup;
 use biome_deserialize::json::{has_only_known_keys, with_only_known_variants, VisitJsonNode};
 use biome_deserialize::{DeserializationDiagnostic, StringSet, VisitNode};
 use biome_formatter::LineWidth;
-use biome_json_syntax::{JsonLanguage, JsonSyntaxNode};
+use biome_json_syntax::{AnyJsonValue, JsonLanguage, JsonSyntaxNode};
 use biome_rowan::{AstNode, SyntaxNode};
 
 impl VisitJsonNode for FormatterConfiguration {}
@@ -25,48 +25,61 @@ impl VisitNode<JsonLanguage> for FormatterConfiguration {
     ) -> Option<()> {
         let (name, value) = self.get_key_and_value(key, value, diagnostics)?;
         let name_text = name.text();
-        match name_text {
-            "formatWithErrors" => {
-                self.format_with_errors = self.map_to_boolean(&value, name_text, diagnostics);
-            }
-            "enabled" => {
-                self.enabled = self.map_to_boolean(&value, name_text, diagnostics);
-            }
-            "ignore" => {
-                self.ignore = self
-                    .map_to_index_set_string(&value, name_text, diagnostics)
-                    .map(StringSet::new);
-            }
-            "indentStyle" => {
-                let mut indent_style = PlainIndentStyle::default();
-                self.map_to_known_string(&value, name_text, &mut indent_style, diagnostics)?;
-                self.indent_style = Some(indent_style);
-            }
-            "indentSize" => {
-                self.indent_size = self.map_to_u8(&value, name_text, u8::MAX, diagnostics);
-            }
-            "lineWidth" => {
-                let line_width = self.map_to_u16(&value, name_text, LineWidth::MAX, diagnostics)?;
 
-                self.line_width = Some(match LineWidth::try_from(line_width) {
-                    Ok(result) => result,
-                    Err(err) => {
-                        diagnostics.push(
-                            DeserializationDiagnostic::new(err.to_string())
-                                .with_range(value.range())
-                                .with_note(
-                                    markup! {"Maximum value accepted is "{{LineWidth::MAX}}},
-                                ),
-                        );
-                        LineWidth::default()
-                    }
-                });
-            }
-            _ => {}
-        }
+        *self = deserialize_base_formatter_options(name_text, &value, diagnostics)?;
 
         Some(())
     }
+}
+
+pub(crate) fn deserialize_base_formatter_options(
+    name_text: &str,
+    value: &AnyJsonValue,
+    diagnostics: &mut Vec<DeserializationDiagnostic>,
+) -> Option<FormatterConfiguration> {
+    let mut configuration = FormatterConfiguration::default();
+    match name_text {
+        "formatWithErrors" => {
+            configuration.format_with_errors =
+                configuration.map_to_boolean(&value, name_text, diagnostics);
+        }
+        "enabled" => {
+            configuration.enabled = configuration.map_to_boolean(&value, name_text, diagnostics);
+        }
+        "ignore" => {
+            configuration.ignore = configuration
+                .map_to_index_set_string(&value, name_text, diagnostics)
+                .map(StringSet::new);
+        }
+        "indentStyle" => {
+            let mut indent_style = PlainIndentStyle::default();
+            configuration.map_to_known_string(&value, name_text, &mut indent_style, diagnostics)?;
+            configuration.indent_style = Some(indent_style);
+        }
+        "indentSize" => {
+            configuration.indent_size =
+                configuration.map_to_u8(&value, name_text, u8::MAX, diagnostics);
+        }
+        "lineWidth" => {
+            let line_width =
+                configuration.map_to_u16(&value, name_text, LineWidth::MAX, diagnostics)?;
+
+            configuration.line_width = Some(match LineWidth::try_from(line_width) {
+                Ok(result) => result,
+                Err(err) => {
+                    diagnostics.push(
+                        DeserializationDiagnostic::new(err.to_string())
+                            .with_range(value.range())
+                            .with_note(markup! {"Maximum value accepted is "{{LineWidth::MAX}}}),
+                    );
+                    LineWidth::default()
+                }
+            });
+        }
+        _ => {}
+    }
+
+    Some(configuration)
 }
 
 impl VisitNode<JsonLanguage> for PlainIndentStyle {

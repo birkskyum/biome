@@ -73,6 +73,14 @@ impl Default for FormatterConfiguration {
     }
 }
 
+impl FromStr for FormatterConfiguration {
+    type Err = String;
+
+    fn from_str(_s: &str) -> Result<Self, Self::Err> {
+        Ok(Self::default())
+    }
+}
+
 impl MergeWith<FormatterConfiguration> for FormatterConfiguration {
     fn merge_with(&mut self, other: FormatterConfiguration) {
         if let Some(enabled) = other.enabled {

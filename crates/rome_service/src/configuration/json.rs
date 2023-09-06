@@ -1,4 +1,5 @@
 use crate::configuration::merge::MergeWith;
+use crate::configuration::FormatterConfiguration;
 use bpaf::Bpaf;
 use serde::{Deserialize, Serialize};
 
@@ -11,10 +12,15 @@ pub struct JsonConfiguration {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[bpaf(external(json_parser), optional)]
     pub parser: Option<JsonParser>,
+
+    /// Formatting options
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[bpaf(external(json_formatter), optional)]
+    pub formatter: Option<JsonFormatter>,
 }
 
 impl JsonConfiguration {
-    pub const KNOWN_KEYS: &'static [&'static str] = &["parser"];
+    pub const KNOWN_KEYS: &'static [&'static str] = &["parser", "formatter"];
 }
 
 impl MergeWith<JsonConfiguration> for JsonConfiguration {
@@ -25,11 +31,6 @@ impl MergeWith<JsonConfiguration> for JsonConfiguration {
         }
     }
 }
-
-#[derive(Debug, Default, Deserialize, Serialize, Eq, PartialEq, Clone, Bpaf)]
-#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
-#[serde(default, deny_unknown_fields)]
-pub struct JavascriptOrganizeImports {}
 
 /// Options that changes how the JSON parser behaves
 #[derive(Default, Debug, Deserialize, Serialize, Eq, PartialEq, Clone, Bpaf)]
@@ -52,4 +53,24 @@ impl MergeWith<JsonParser> for JsonParser {
             self.allow_comments = Some(allow_comments);
         }
     }
+}
+
+#[derive(Default, Debug, Deserialize, Serialize, Eq, PartialEq, Clone, Bpaf)]
+#[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
+#[serde(default, deny_unknown_fields)]
+pub struct JsonFormatter {
+    #[bpaf(hide)]
+    #[serde(flatten)]
+    pub base_options: FormatterConfiguration,
+}
+
+impl JsonFormatter {
+    pub(crate) const KNOWN_KEYS: &'static [&'static str] = &[
+        "enabled",
+        "formatWithErrors",
+        "indentStyle",
+        "indentSize",
+        "lineWidth",
+        "ignore",
+    ];
 }

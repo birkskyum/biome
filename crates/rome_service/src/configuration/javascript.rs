@@ -1,14 +1,11 @@
 mod formatter;
 
-use crate::configuration::javascript::formatter::{javascript_formatter, JavascriptFormatter};
 use crate::configuration::merge::MergeWith;
 use biome_deserialize::StringSet;
 use bpaf::Bpaf;
-use rome_deserialize::StringSet;
-use rome_js_formatter::context::{
-    trailing_comma::TrailingComma, ArrowParentheses, QuoteProperties, QuoteStyle, Semicolons,
-};
 use serde::{Deserialize, Serialize};
+
+pub use formatter::{javascript_formatter, JavascriptFormatter};
 
 /// A set of options applied to the JavaScript files
 #[derive(Default, Debug, Deserialize, Serialize, Eq, PartialEq, Clone, Bpaf)]

@@ -1,4 +1,4 @@
-use crate::configuration::{formatter_configuration, FormatterConfiguration};
+use crate::configuration::FormatterConfiguration;
 use crate::MergeWith;
 use bpaf::Bpaf;
 use rome_js_formatter::context::trailing_comma::TrailingComma;
@@ -10,6 +10,9 @@ use serde::{Deserialize, Serialize};
 #[cfg_attr(feature = "schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "camelCase", default, deny_unknown_fields)]
 pub struct JavascriptFormatter {
+    #[serde(flatten)]
+    pub base_options: FormatterConfiguration,
+
     /// Control the formatter for JavaScript (and its super languages) files.
     #[bpaf(
         long("--javascript-formatter-enabled"),
@@ -17,7 +20,7 @@ pub struct JavascriptFormatter {
         optional
     )]
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub enabled: Option<QuoteStyle>,
+    pub enabled: Option<bool>,
 
     /// The type of quotes used in JavaScript code. Defaults to double.
     #[bpaf(long("quote-style"), argument("double|single"), optional)]
@@ -43,11 +46,6 @@ pub struct JavascriptFormatter {
     #[bpaf(long("arrow-parentheses"), argument("always|as-needed"), optional)]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub arrow_parentheses: Option<ArrowParentheses>,
-
-    /// Whether to add non-necessary parentheses to arrow functions. Defaults to "always".
-    #[bpaf(external(formatter_configuration), optional)]
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub overrides: Option<FormatterOverride>,
 }
 
 impl JavascriptFormatter {
@@ -58,6 +56,12 @@ impl JavascriptFormatter {
         "trailingComma",
         "semicolons",
         "arrowParentheses",
+        "enabled",
+        "formatWithErrors",
+        "indentStyle",
+        "indentSize",
+        "lineWidth",
+        "ignore",
     ];
 }
 
@@ -83,5 +87,3 @@ impl MergeWith<JavascriptFormatter> for JavascriptFormatter {
         }
     }
 }
-
-struct FormatterOverride {}
