@@ -260,15 +260,18 @@ test(lint): add more cases to handle invalid rules
 ### Creating pull requests
 
 When creating a new pull request, it's preferable to use a conventional commit-formatted title, as this title will be used as the default commit message on the squashed commit after merging.
+See the [dedicated section](#Commit-messages) about conventional commit format.
 
 Please use the template provided.
 
 #### Changelog
 
-If the PR you're about to open is a bugfix/feature around Biome, you can add a new line to the `CHANGELOG.md`, but it's not mandatory.
+If the PR you're about to open is a bugfix/feature that is visible to Biome users,
+you should add a new bullet point to [CHANGELOG.md](./CHANGELOG.md).
 
-At the top of the file you will see a `Unreleased` section. The headings divide the sections by "feature", make sure
-to add a new bullet point.
+At the top of the file you will see a `Unreleased` section.
+The headings divide the sections by "scope".
+Make sure to edit the right subsection.
 
 Here's a sample of the headings:
 
@@ -298,17 +301,42 @@ When you edit a blank section:
 
 - If your PR adds a **breaking change**, create a new heading called `#### BREAKING CHANGES` and add
   bullet point that explains the breaking changes; provide a migration path if possible.
-- If your PR adds a new feature of a fix, create a new heading called `#### Other changes` and
-  add a bullet point that explains the fix or the new feature. Make sure that this new heading
-  appears after the `#### BREAKING CHANGES` heading.
+  Read [how we version Biome](https://biomejs.dev/internals/versioning/) to determine if your change is a breaking change.
+  A breaking change result in a major release.
+- If your PR adds a new feature, enhance an existing feature, or fix a bug, create a new heading called `#### New features`, `#### Enhancements`, or `#### Bug fixes`.
+  Then, add a bullet point that explains the change.
+
+Make sure that the created subsections are ordered in the following order:
+
+```md
+#### BREAKING CHANGES
+
+#### New features
+
+#### Enhancements
+
+#### Bug fixes
+```
+
+Bullet points should be sorted in their importance order: important changes come first.
+
+Because the website displays the changelog,
+you should update the website using the following command:
+
+```sh
+just codegen
+```
 
 ##### Writing a changelog line
 
 - Use the present tense, e.g. "Add new feature", "Fix edge case".
 - If you fix a bug, please add the link to the issue, e.g. "Fix edge case [#4444]()".
+- You can add a mention `@user` for every contributor of the change.
 - Whenever applicable, add a code block to show your new changes. For example, for a new
   rule you might want to show an invalid case, for the formatter you might want to show
   how the new formatting changes, and so on.
+
+If in doubt, take a look to existing changelog lines.
 
 #### Documentation
 

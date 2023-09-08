@@ -72,7 +72,7 @@ declare_rule! {
     /// ```
     ///
     pub(crate) UseCollapsedElseIf {
-        version: "next",
+        version: "1.1.0",
         name: "useCollapsedElseIf",
         recommended: false,
     }
